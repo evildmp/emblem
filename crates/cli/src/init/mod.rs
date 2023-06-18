@@ -167,7 +167,7 @@ mod test {
             let ctx = Context::new();
             assert!(parser::parse(
                 ctx.alloc_file_name(main_file.as_path().to_str().unwrap()),
-                ctx.alloc_file(expected_main_content.into())
+                ctx.alloc_file_content(expected_main_content.into())
             )
             .is_ok());
         }

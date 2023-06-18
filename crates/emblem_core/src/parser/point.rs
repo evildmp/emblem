@@ -2,23 +2,23 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::fmt::{self, Display};
 
-use crate::FileName;
+use crate::{FileName, FileContent};
 
 lazy_static! {
     static ref NEWLINE: Regex = Regex::new("(\n|\r\n|\r)").unwrap();
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Point<'input> {
+pub struct Point {
     pub file_name: FileName,
-    pub src: &'input str,
+    pub src: FileContent,
     pub line: usize,
     pub col: usize,
     pub index: usize,
 }
 
-impl<'input> Point<'input> {
-    pub fn new(file_name: FileName, src: &'input str) -> Self {
+impl Point {
+    pub fn new(file_name: FileName, src: FileContent) -> Self {
         Self {
             file_name,
             src,
@@ -28,7 +28,7 @@ impl<'input> Point<'input> {
         }
     }
 
-    pub fn shift(mut self, text: &'input str) -> Self {
+    pub fn shift(mut self, text: FileContent) -> Self {
         let lines: Vec<&str> = NEWLINE.split(text).collect();
         let num_lines = lines.len();
 
@@ -47,7 +47,7 @@ impl<'input> Point<'input> {
     }
 }
 
-impl Default for Point<'_> {
+impl Default for Point {
     fn default() -> Self {
         Self {
             file_name: FileName::new(""),
@@ -59,7 +59,7 @@ impl Default for Point<'_> {
     }
 }
 
-impl<'input> Display for Point<'input> {
+impl<'input> Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.line, self.col)
     }

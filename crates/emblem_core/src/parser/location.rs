@@ -1,21 +1,21 @@
 use crate::{
     parser::{LocationContext, Point},
-    FileName,
+    FileContent, FileName,
 };
 use core::fmt::{self, Display};
 use std::cmp;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Location<'i> {
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Location {
     file_name: FileName,
-    src: &'i str,
+    src: FileContent,
     lines: (usize, usize),
     cols: (usize, usize),
     indices: (usize, usize),
 }
 
-impl<'i> Location<'i> {
-    pub fn new(start: &Point<'i>, end: &Point<'i>) -> Self {
+impl Location {
+    pub fn new(start: &Point, end: &Point) -> Self {
         Self {
             file_name: start.file_name.clone(),
             src: start.src,
@@ -29,8 +29,8 @@ impl<'i> Location<'i> {
         &self.file_name
     }
 
-    pub fn src(&self) -> &'i str {
-        self.src
+    pub fn src(&self) -> &FileContent {
+        &self.src
     }
 
     pub fn lines(&self) -> (usize, usize) {
@@ -47,20 +47,20 @@ impl<'i> Location<'i> {
         (start - context_start, end - context_start)
     }
 
-    pub fn start(&self) -> Point<'i> {
+    pub fn start(&self) -> Point {
         Point {
             file_name: self.file_name.clone(),
-            src: self.src,
+            src: self.src.clone(),
             line: self.lines.0,
             col: self.cols.0,
             index: self.indices.0,
         }
     }
 
-    pub fn end(&self) -> Point<'i> {
+    pub fn end(&self) -> Point {
         Point {
             file_name: self.file_name.clone(),
-            src: self.src,
+            src: self.src.clone(),
             line: self.lines.1,
             col: self.cols.1,
             index: self.indices.1,
@@ -93,7 +93,7 @@ impl<'i> Location<'i> {
         }
     }
 
-    pub fn context(&self) -> LocationContext<'i> {
+    pub fn context(&self) -> LocationContext {
         let start = self.src[..self.indices.0]
             .rfind(['\r', '\n'])
             .map(|i| i + 1)
@@ -107,19 +107,7 @@ impl<'i> Location<'i> {
     }
 }
 
-impl Default for Location<'_> {
-    fn default() -> Self {
-        Self {
-            file_name: FileName::new(""),
-            src: Default::default(),
-            lines: Default::default(),
-            cols: Default::default(),
-            indices: Default::default(),
-        }
-    }
-}
-
-impl Display for Location<'_> {
+impl Display for Location {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.lines.0 != self.lines.1 {
             write!(

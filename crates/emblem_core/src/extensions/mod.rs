@@ -388,7 +388,7 @@ mod test {
 
     #[test]
     fn memory_limited() -> Result<(), Box<dyn Error>> {
-        let threshold = 100000;
+        let threshold = 500000;
         for limit in [ResourceLimit::Unlimited, ResourceLimit::Limited(threshold)] {
             let ctx = {
                 let mut ctx = Context::test_new();
@@ -401,7 +401,7 @@ mod test {
                 let used_memory = lua.used_memory();
                 assert!(
                     threshold > used_memory,
-                    "test invalidated: need threshold > used_memory ({threshold} > {used_memory})"
+                    "test invalidated: need threshold > used_memory (need {threshold} > {used_memory})"
                 );
                 threshold - used_memory
             };

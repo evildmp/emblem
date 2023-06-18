@@ -66,7 +66,7 @@ mod test {
         let ctx = Context::new();
         let p = Point::new(
             ctx.alloc_file_name("main.em"),
-            ctx.alloc_file("1111111111111".into()),
+            ctx.alloc_file_content("1111111111111".into()),
         );
         let shifted = p.clone().shift("1111111111111");
         let loc = Location::new(&p, &shifted);
@@ -79,7 +79,7 @@ mod test {
         let ctx = Context::new();
         let start = Point::new(
             ctx.alloc_file_name("main.em"),
-            ctx.alloc_file("111111222222".into()),
+            ctx.alloc_file_content("111111222222".into()),
         );
         let mid = start.clone().shift("111111");
         let end = mid.clone().shift("222222");

@@ -6,6 +6,7 @@ use crate::log::messages::{
 use crate::log::Log;
 use crate::parser::Location;
 use crate::FileName;
+use crate::FileContent;
 use crate::{log::messages::Message, parser::point::Point};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -16,32 +17,32 @@ use std::{
     fmt::{self, Display},
 };
 
-pub struct Lexer<'input> {
-    input: &'input str,
+pub struct Lexer<'i> {
+    raw_input: FileContent,
     done: bool,
     failed: bool,
     start_of_line: bool,
     current_indent: u32,
-    curr_point: Point<'input>,
-    prev_point: Point<'input>,
-    open_braces: Vec<Location<'input>>,
-    next_toks: VecDeque<SpannedTok<'input>>,
-    multi_line_comment_starts: Vec<Location<'input>>,
-    last_tok: Option<Tok<'input>>,
-    attr_open: Option<Location<'input>>,
+    curr_point: Point,
+    prev_point: Point,
+    open_braces: Vec<Location>,
+    next_toks: VecDeque<SpannedTok<'i>>,
+    multi_line_comment_starts: Vec<Location>,
+    last_tok: Option<Tok<'i>>,
+    attr_open: Option<Location>,
     opening_delimiters: bool,
-    open_delimiters: Vec<(&'input str, Location<'input>)>,
+    open_delimiters: Vec<(&'i str, Location)>,
 }
 
-impl<'input> Lexer<'input> {
-    pub fn new(file: FileName, input: &'input str) -> Self {
+impl<'i> Lexer<'i> {
+    pub fn new(file: FileName, input: FileContent, raw_input: &'i str) -> Self {
         Self {
-            input,
+            raw_input,
             done: false,
             failed: false,
             start_of_line: true,
             current_indent: 0,
-            curr_point: Point::new(file.clone(), input),
+            curr_point: Point::new(file.clone(), input.clone()),
             prev_point: Point::new(file, input),
             open_braces: Vec::new(),
             next_toks: VecDeque::new(),
@@ -53,30 +54,29 @@ impl<'input> Lexer<'input> {
         }
     }
 
-    fn try_consume(&mut self, re: &Regex) -> Option<&'input str> {
-        if let Some(mat) = re.find(self.input) {
-            self.input = &self.input[mat.end()..];
+    fn try_consume(&mut self, re: &Regex) -> Option<&'i str> {
+        if let Some(mat) = re.find(self.raw_input.as_ref()) {
+            self.raw_input = self.raw_input.slice(mat.end()..);
             self.shift_locs(mat.as_str());
 
-            Some(mat.as_str())
+            Some(self.raw_input.slice(mat.start()..mat.end()))
         } else {
             None
         }
     }
 
-    fn shift_locs(&mut self, s: &'input str) {
+    fn shift_locs(&mut self, s: &'i str) {
         let curr_point = self.curr_point.clone();
         self.prev_point = curr_point.clone();
         self.curr_point = curr_point.shift(s);
     }
 
-    fn span(&self, tok: Tok<'input>) -> SpannedTok<'input> {
+    fn span(&self, tok: Tok<'i>) -> SpannedTok<'i> {
         (self.prev_point.clone(), tok, self.curr_point.clone())
     }
 
     fn enqueue_indentation_level(&mut self, target: u32) {
         let difference = self.current_indent.abs_diff(target);
-
         if difference == 0 {
             return;
         }
@@ -94,11 +94,11 @@ impl<'input> Lexer<'input> {
         self.current_indent = target;
     }
 
-    fn dequeue(&mut self) -> Option<SpannedTok<'input>> {
+    fn dequeue(&mut self) -> Option<SpannedTok<'i>> {
         self.next_toks.pop_front()
     }
 
-    fn enqueue(&mut self, t: SpannedTok<'input>) {
+    fn enqueue(&mut self, t: SpannedTok<'i>) {
         self.next_toks.push_back(t)
     }
 
@@ -106,11 +106,11 @@ impl<'input> Lexer<'input> {
         matches!(self.last_tok, Some(Tok::Command { .. }))
     }
 
-    fn location(&self) -> Location<'input> {
+    fn location(&self) -> Location {
         Location::new(&self.prev_point, &self.curr_point)
     }
 
-    fn emph(&mut self, raw: &'input str) -> Result<Tok<'input>, Box<LexicalError<'input>>> {
+    fn emph(&mut self, raw: &'i str) -> Result<Tok<'i>, Box<LexicalError<'i>>> {
         if self.opening_delimiters {
             self.open_delimiters.push((raw, self.location()));
 
@@ -288,7 +288,7 @@ impl<'input> Iterator for Lexer<'input> {
             };
         }
 
-        if self.input.is_empty() {
+        if self.raw_input.is_empty() {
             if !self.open_braces.is_empty() {
                 self.failed = true;
                 return Some(Err(Box::new(LexicalError::UnexpectedEOF {
@@ -512,9 +512,9 @@ pub enum Tok<'input> {
     },
     ItalicOpen(&'input str),
     BoldOpen(&'input str),
-    MonospaceOpen(&'input str),
-    SmallcapsOpen(&'input str),
-    AlternateFaceOpen(&'input str),
+    MonospaceOpen,
+    SmallcapsOpen,
+    AlternateFaceOpen,
     Heading {
         level: usize,
         pluses: usize,
@@ -602,7 +602,7 @@ fn indent_level(s: &str) -> u32 {
     tabs + (spaces as f32 / 4_f32).ceil() as u32
 }
 
-pub type SpannedTok<'input> = (Point<'input>, Tok<'input>, Point<'input>);
+pub type SpannedTok<'input> = (Point, Tok<'input>, Point);
 
 #[derive(Debug)]
 pub enum LexicalError<'input> {

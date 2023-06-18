@@ -6,6 +6,18 @@ use crate::ast::AstDebug;
 
 pub type ParsedFile<'i> = File<ParPart<Content<'i>>>;
 
+// pub enum Diff {
+//     Command {
+//         args: Vec<Ref>,
+//         attrs: Vec<Ref>,
+//     },
+// }
+
+// pub enum Ref {
+//     Arg(usize),
+//     Replacement(Diff),
+// }
+
 #[allow(clippy::large_enum_variant)] // TODO(kcza): re-evaluate this (requires benchmarks)
 #[derive(Debug)]
 pub enum Content<'i> {

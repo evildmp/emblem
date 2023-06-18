@@ -130,7 +130,7 @@ mod test {
         typesetter.typeset(
             parser::parse(
                 ctx.alloc_file_name("iter_events.em"),
-                ctx.alloc_file("".into()),
+                ctx.alloc_file_content("".into()),
             )
             .unwrap(),
         )?;
@@ -188,7 +188,7 @@ mod test {
         Typesetter::new(&ctx, &mut ext_state).typeset(
             parser::parse(
                 ctx.alloc_file_name("iter_events.em"),
-                ctx.alloc_file("".into()),
+                ctx.alloc_file_content("".into()),
             )
             .unwrap(),
         )?;
@@ -356,7 +356,7 @@ mod test {
         Typesetter::new(&ctx, &mut ext_state).typeset(
             parser::parse(
                 ctx.alloc_file_name("event-listeners.em"),
-                ctx.alloc_file("".into()),
+                ctx.alloc_file_content("".into()),
             )
             .unwrap(),
         )?;

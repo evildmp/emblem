@@ -56,14 +56,14 @@ where
             .map(String::with_capacity)
             .unwrap_or_default();
         reader.read_to_string(&mut buf)?;
-        ctx.alloc_file(buf)
+        ctx.alloc_file_content(buf)
     };
 
     parse(file, content)
 }
 
 /// Parse a given string of emblem source code.
-pub fn parse(name: FileName, content: &str) -> Result<ParsedFile<'_>, Box<Error<'_>>> {
+pub fn parse(name: FileName, content: FileContent) -> Result<ParsedFile, Box<Error>> {
     let lexer = Lexer::new(name, content);
     let parser = parser::FileParser::new();
 

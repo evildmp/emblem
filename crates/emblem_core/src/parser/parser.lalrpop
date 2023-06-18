@@ -221,7 +221,7 @@ MaybeIndented<T>: T = {
 }
 
 extern {
-	type Location = Point<'input>;
+	type Location = Point;
 	type Error = Box<LexicalError<'input>>;
 
 	enum Tok<'input> {

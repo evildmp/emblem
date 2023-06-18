@@ -518,7 +518,7 @@ mod test {
     #[test]
     fn srcs() {
         let ctx = Context::new();
-        let content = ctx.alloc_file("hello, world".into());
+        let content = ctx.alloc_file_content("hello, world".into());
         let srcs = [
             Point::new(ctx.alloc_file_name("main.em"), content),
             Point::new(ctx.alloc_file_name("something-else.em"), content),

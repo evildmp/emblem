@@ -1,7 +1,8 @@
 pub(crate) mod file_name;
+pub(crate) mod file_contents;
 mod module;
 
-use crate::{ExtensionState, FileName, Typesetter, Version};
+use crate::{ExtensionState, FileName, Typesetter, Version, FileContent};
 use derive_new::new;
 use mlua::Result as MLuaResult;
 pub use module::{Module, ModuleVersion};
@@ -15,7 +16,6 @@ pub const DEFAULT_MAX_ITERS: u32 = 5;
 
 #[derive(Default)]
 pub struct Context<'m> {
-    files: Arena<String>,
     doc_params: DocumentParameters<'m>,
     lua_params: LuaParameters<'m>,
     typesetter_params: TypesetterParameters,
@@ -30,8 +30,8 @@ impl<'m> Context<'m> {
         FileName::new(name)
     }
 
-    pub fn alloc_file(&self, content: String) -> &str {
-        self.files.alloc(content)
+    pub fn alloc_file_content(&self, content: String) -> FileContent {
+        FileContent::new(&content)
     }
 
     pub fn doc_params(&self) -> &DocumentParameters<'m> {
@@ -71,7 +71,6 @@ impl<'m> Context<'m> {
 impl<'m> Context<'m> {
     pub fn test_new() -> Self {
         Self {
-            files: Arena::new(),
             doc_params: DocumentParameters::test_new(),
             lua_params: LuaParameters::test_new(),
             typesetter_params: TypesetterParameters::test_new(),
@@ -301,7 +300,7 @@ mod test {
         let ctx = Context::test_new();
         let content = "hello, world".to_owned();
 
-        let result = ctx.alloc_file(content.clone());
+        let result = ctx.alloc_file_content(content.clone());
         assert_eq!(result, content);
     }
 }

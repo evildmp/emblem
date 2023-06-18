@@ -86,7 +86,7 @@ mod test {
     use crate::{ast::parsed::ParsedFile, parser, Context};
 
     fn parse<'ctx>(ctx: &'ctx Context, name: &'ctx str, src: &'ctx str) -> ParsedFile<'ctx> {
-        parser::parse(ctx.alloc_file_name(name), ctx.alloc_file(src.into())).unwrap()
+        parser::parse(ctx.alloc_file_name(name), ctx.alloc_file_content(src.into())).unwrap()
     }
 
     #[test]
